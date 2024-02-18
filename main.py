@@ -48,6 +48,11 @@ def add_is_paid_column(df):
     return df
 
 
+def clean_learning_resource_column(df):
+    df['Learning Resource'] = df['Learning Resource'].apply(lambda x: x.strip().replace('$', ''))
+    return df
+
+
 file = 'input/Ramp-Up_Guide_Developer.pdf'
 
 # use a different table_areas for the first page?
@@ -67,6 +72,7 @@ for table in tables[1:]:
 concatenated_df = pd.concat(dfs, axis=0, ignore_index=True)
 concatenated_df = clean_rows(concatenated_df)
 concatenated_df = add_is_paid_column(concatenated_df)
+concatenated_df = clean_learning_resource_column(concatenated_df)
 
 print('concatenated_df')
 print(concatenated_df)
