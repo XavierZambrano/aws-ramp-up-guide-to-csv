@@ -7,21 +7,21 @@ def remove_unnecessary_columns(table):
 
 
 def get_row_index_start_first_table(table):
-    first_column = table.iloc[:, 0]
-    index = (first_column == 'Learning Resource').idxmax()
+    learning_resource_column = table['Learning Resource']
+    index = (learning_resource_column == 'Learning Resource').idxmax()
 
     return index - 1 if index > 0 else 0
 
 
 def get_start_end_indexes_and_table_title(table):
-    first_column = table.iloc[:, 0]
-    indexes_learning_resource = first_column[first_column == 'Learning Resource'].index.tolist()
+    learning_resource_column = table['Learning Resource']
+    indexes_learning_resource = learning_resource_column[learning_resource_column == 'Learning Resource'].index.tolist()
     indexes_title = [index - 1 if index > 0 else 0 for index in indexes_learning_resource]
     last_index = len(table.index)
 
     start_end_indexes = []
     for n, index_title in enumerate(indexes_title):
-        table_title = first_column[index_title]
+        table_title = learning_resource_column[index_title]
         index_start_table_content = index_title + 2
 
         if n == len(indexes_title) - 1:
@@ -42,9 +42,9 @@ file = 'input/Ramp-Up_Guide_Developer.pdf'
 # use a different table_areas for the first page?
 tables = camelot.read_pdf(file, flavor='stream', pages='all', edge_tol=50, row_tol=10)
 first_df = remove_unnecessary_columns(tables[0].df)
+first_df.columns = ['Learning Resource', 'Duration (hrs)', 'Type']
 index_start_first_table = get_row_index_start_first_table(first_df)
 first_df = first_df.iloc[index_start_first_table:]
-first_df.columns = ['Learning Resource', 'Duration (hrs)', 'Type']
 
 dfs = []
 dfs.append(first_df)
@@ -82,6 +82,7 @@ for ramp_up_table in ramp_up_tables:
     dfs_to_concat.append(ramp_up_df)
     print('ramp_up_df')
     print(ramp_up_df)
+
 concatenated_df = pd.concat(dfs_to_concat, axis=0, ignore_index=True)
 print('concatenated_df')
 print(concatenated_df)
