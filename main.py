@@ -32,8 +32,19 @@ def get_start_end_indexes_and_table_title(table):
 
     return start_end_indexes
 
+
 def clean_rows(df):
     df = df[~df['Learning Resource'].str.contains('AWS Ramp-Up Guide', case=False)]
+    return df
+
+
+def add_is_paid_column(df):
+    df[''] = df['Learning Resource'].apply(lambda x: '$' if '$' in x else '')
+    # move this column to the first position
+    cols = df.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    df = df[cols]
+
     return df
 
 
@@ -55,6 +66,10 @@ for table in tables[1:]:
 
 concatenated_df = pd.concat(dfs, axis=0, ignore_index=True)
 concatenated_df = clean_rows(concatenated_df)
+concatenated_df = add_is_paid_column(concatenated_df)
+
+print('concatenated_df')
+print(concatenated_df)
 
 start_end_indexes = get_start_end_indexes_and_table_title(concatenated_df)
 
@@ -72,7 +87,7 @@ for ramp_up_table in ramp_up_tables:
 
     # create title row df
     title = empty_row.copy()
-    title[0] = ramp_up_table['title']
+    title[1] = ramp_up_table['title']
 
     title_df = pd.DataFrame([title], columns=ramp_up_table['df'].columns)
     headers_row_df = pd.DataFrame([ramp_up_table['df'].columns], columns=ramp_up_table['df'].columns)
