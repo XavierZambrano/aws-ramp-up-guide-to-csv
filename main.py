@@ -32,6 +32,10 @@ def get_start_end_indexes_and_table_title(table):
 
     return start_end_indexes
 
+def clean_rows(df):
+    df = df[~df['Learning Resource'].str.contains('AWS Ramp-Up Guide', case=False)]
+    return df
+
 
 file = 'input/Ramp-Up_Guide_Developer.pdf'
 
@@ -50,6 +54,8 @@ for table in tables[1:]:
     dfs.append(df)
 
 concatenated_df = pd.concat(dfs, axis=0, ignore_index=True)
+concatenated_df = clean_rows(concatenated_df)
+
 start_end_indexes = get_start_end_indexes_and_table_title(concatenated_df)
 
 ramp_up_tables = []
