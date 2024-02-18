@@ -13,6 +13,26 @@ def get_row_index_start_first_table(table):
     return index - 1 if index > 0 else 0
 
 
+def get_start_end_indexes_and_table_title(table):
+    first_column = table.iloc[:, 0]
+    indexes_learning_resource = first_column[first_column == 'Learning Resource'].index.tolist()
+    indexes_title = [index - 1 if index > 0 else 0 for index in indexes_learning_resource]
+    last_index = len(table.index)
+
+    start_end_indexes = []
+    for n, index_title in enumerate(indexes_title):
+        table_title = first_column[index_title]
+        index_start_table_content = index_title + 2
+
+        if n == len(indexes_title) - 1:
+            index_end_table_content = last_index
+        else:
+            index_end_table_content = indexes_title[n + 1]
+        start_end_indexes.append((index_start_table_content, index_end_table_content, table_title))
+
+    return start_end_indexes
+
+
 file = 'input/Ramp-Up_Guide_Developer.pdf'
 
 # use a different table_areas for the first page?
@@ -30,15 +50,33 @@ for table in tables[1:]:
     dfs.append(df)
 
 concatenated_df = pd.concat(dfs, axis=0, ignore_index=True)
-concatenated_df.to_csv('output.csv', index=False)
+start_end_indexes = get_start_end_indexes_and_table_title(concatenated_df)
+
+ramp_up_tables = []
+for start, end, title in start_end_indexes:
+    ramp_up_tables.append({'title': title, 'df': concatenated_df.iloc[start:end]})
+
+dfs_to_concat = []
+for ramp_up_table in ramp_up_tables:
+    # get number of columns
+    n_columns = len(ramp_up_table['df'].columns)
+
+    # create emtpy row df
+    empty_row = ['' for i in range(n_columns)]
+
+    # create title row df
+    title = empty_row.copy()
+    title[0] = ramp_up_table['title']
+
+    title_df = pd.DataFrame([title], columns=ramp_up_table['df'].columns)
+    headers_row_df = pd.DataFrame([ramp_up_table['df'].columns], columns=ramp_up_table['df'].columns)
+    empty_row_df = pd.DataFrame([empty_row], columns=ramp_up_table['df'].columns)
+
+    ramp_up_df = pd.concat([title_df, headers_row_df, ramp_up_table['df'], empty_row_df], axis=0)
+    dfs_to_concat.append(ramp_up_df)
+    print('ramp_up_df')
+    print(ramp_up_df)
+concatenated_df = pd.concat(dfs_to_concat, axis=0, ignore_index=True)
+print('concatenated_df')
 print(concatenated_df)
-
-# tables.export('foo.csv', f='csv')  # json, excel, html
-
-
-# camelot.plot(tables[0], kind='contour').show()
-# Print the tables
-# print(tables)
-# for table in tables:
-#     print('table.df', table.df)
-#     print()
+concatenated_df.to_csv('output/ramp_up.csv', index=False, header=False)
