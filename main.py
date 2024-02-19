@@ -16,18 +16,18 @@ def get_row_index_start_first_table(table):
 def get_start_end_indexes_and_table_title(table):
     learning_resource_column = table['Learning Resource']
     indexes_learning_resource = learning_resource_column[learning_resource_column == 'Learning Resource'].index.tolist()
-    indexes_title = [index - 1 if index > 0 else 0 for index in indexes_learning_resource]
     last_index = len(table.index)
 
     start_end_indexes = []
-    for n, index_title in enumerate(indexes_title):
-        table_title = learning_resource_column[index_title]
-        index_start_table_content = index_title + 2
+    for n, index_title in enumerate(indexes_learning_resource):
+        table_title = learning_resource_column[index_title - 1]
+        index_start_table_content = index_title + 1
 
-        if n == len(indexes_title) - 1:
-            index_end_table_content = last_index
+        if n == len(indexes_learning_resource) - 1:
+            index_end_table_content = last_index + 1
         else:
-            index_end_table_content = indexes_title[n + 1]
+            index_end_table_content = indexes_learning_resource[n + 1] - 1
+
         start_end_indexes.append((index_start_table_content, index_end_table_content, table_title))
 
     return start_end_indexes
@@ -49,14 +49,14 @@ def add_is_paid_column(df):
 
 
 def clean_learning_resource_column(df):
-    df['Learning Resource'] = df['Learning Resource'].apply(lambda x: x.strip().replace('$', ''))
+    df['Learning Resource'] = df['Learning Resource'].apply(lambda x: x.replace('$', '').strip())
     return df
 
 
 file = 'input/Ramp-Up_Guide_Developer.pdf'
 
 # use a different table_areas for the first page?
-tables = camelot.read_pdf(file, flavor='stream', pages='all', edge_tol=50, row_tol=10)
+tables = camelot.read_pdf(file, flavor='stream', pages='all', edge_tol=50, row_tol=13)
 first_df = remove_unnecessary_columns(tables[0].df)
 first_df.columns = ['Learning Resource', 'Duration (hrs)', 'Type']
 index_start_first_table = get_row_index_start_first_table(first_df)
@@ -81,7 +81,8 @@ start_end_indexes = get_start_end_indexes_and_table_title(concatenated_df)
 
 ramp_up_tables = []
 for start, end, title in start_end_indexes:
-    ramp_up_tables.append({'title': title, 'df': concatenated_df.iloc[start:end]})
+    my_df = concatenated_df.copy()
+    ramp_up_tables.append({'title': title, 'df': my_df.iloc[start:end]})
 
 dfs_to_concat = []
 for ramp_up_table in ramp_up_tables:
